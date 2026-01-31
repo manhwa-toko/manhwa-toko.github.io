@@ -313,7 +313,8 @@
                 chapters: Number(chapters.value),
                 genres: genres.value.split(',').map(g => g.trim()).filter(Boolean),
                 synopsis: synopsis.value.trim(),
-                characters: []
+                // IMPORTANT: jika sedang edit, ambil characters dari DB (jangan hilangkan)
+                characters: (currentIndex !== null) ? (DB.manhwas[currentIndex].characters || []) : []
             }
 
             if (!data.id || !data.title) {
@@ -334,6 +335,8 @@
 
             if (currentIndex === null) {
                 DB.manhwas.push(data)
+                // set currentIndex ke yang baru agar UX konsisten (opsional)
+                currentIndex = DB.manhwas.length - 1
             } else {
                 DB.manhwas[currentIndex] = {
                     ...DB.manhwas[currentIndex],
@@ -343,6 +346,7 @@
 
             commit()
         }
+
 
         function remove() {
             if (currentIndex === null) return
