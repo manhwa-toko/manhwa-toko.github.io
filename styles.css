@@ -91,3 +91,24 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:Inter, 
 
 /* make chips wrap nicely on small screens */
 .chips-wrap { display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:flex-end; }
+
+.chip {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chip button {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+

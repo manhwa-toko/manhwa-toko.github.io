@@ -4,247 +4,704 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Editor Manhwa (Private)</title>
+    <title>Manhwa Editor</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <style>
         body {
-            background: #0b0d10;
-            color: #e6eef8;
-        }
-
-        .card {
-            background: #111827;
-            border: 1px solid #1f2937;
+            background: #06060a;
+            color: #fff
         }
 
         .muted {
-            color: #9ca3af;
-            font-size: .9rem;
+            color: #aaa
         }
 
-        img.poster {
-            width: 72px;
-            height: 108px;
-            object-fit: cover;
-            border-radius: 6px
+        .list-group-item {
+            background: #0b0e12;
+            color: #fff;
+            border-color: #1b1f2a
         }
 
-        pre {
-            background: #020617;
-            color: #c7d2fe;
-            padding: 12px;
-            border-radius: 6px;
-            max-height: 220px;
-            overflow: auto
+        input,
+        textarea {
+            background: #0b0e12 !important;
+            color: #fff !important;
+            border-color: #333 !important
+        }
+
+        .danger {
+            color: #ff6b6b
         }
     </style>
 </head>
 
 <body>
-    <main class="container py-4">
 
-        <h3>📚 Manhwa Editor <span class="muted">(auto commit GitHub)</span></h3>
-        <p class="muted">Halaman ini PRIVATE. Semua perubahan langsung di-commit ke GitHub.</p>
-
-        <!-- LIST -->
-        <div class="card p-3 mb-3">
-            <div class="d-flex gap-2 mb-2">
-                <input id="filter" class="form-control form-control-sm" placeholder="Cari judul / genre..." />
-                <button id="reload" class="btn btn-sm btn-outline-secondary">Reload</button>
-                <button id="commit" class="btn btn-sm btn-primary ms-auto">💾 Simpan & Commit</button>
+    <div id="preview" class="d-none" style="
+       position:fixed;
+       inset:0;
+       background:rgba(0,0,0,0.8);
+       z-index:2000;
+       overflow:auto;
+       padding:20px;
+     ">
+        <div class="container bg-dark p-4 rounded" style="max-width:900px">
+            <div class="d-flex justify-content-between mb-3">
+                <h4 id="preview-title"></h4>
+                <button class="btn btn-sm btn-light" onclick="closePreview()">Tutup</button>
             </div>
-            <div id="list" class="row g-2"></div>
-            <div id="empty" class="muted mt-2">Loading...</div>
+
+            <img id="preview-poster" class="img-fluid rounded mb-3">
+
+            <div id="preview-genres" class="mb-2"></div>
+            <div class="mb-2">Chapters: <span id="preview-chapters"></span></div>
+
+            <h6>Sinopsis</h6>
+            <p id="preview-synopsis" class="text-muted"></p>
+
+            <h6>Characters</h6>
+            <div id="preview-chars"></div>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <h3 class="mb-3">📚 Manhwa Editor</h3>
+
+        <!-- SECRET -->
+        <div class="mb-3">
+            <label class="form-label">Editor Secret</label>
+            <input id="secret" class="form-control" placeholder="masukkan EDITOR_SECRET">
+            <div id="secret-status" class="form-text"></div>
         </div>
 
-        <!-- FORM -->
-        <div class="card p-3 mb-3">
-            <h5>Tambah / Edit Manhwa</h5>
-            <form id="form">
-                <input type="hidden" id="mode" value="add" />
-                <div class="row g-2">
+        <div class="row">
+            <!-- LIST -->
+            <div class="col-md-4">
+                <button class="btn btn-sm btn-success mb-2" onclick="newManhwa()">+ Manhwa Baru</button>
+                <ul id="list" class="list-group"></ul>
+                <br>
+            </div>
+
+            <hr>
+
+            <!-- FORM -->
+            <div class="col-md-8">
+                <h5 id="form-title">Editor</h5>
+
+                <div class="mb-2">
+                    <label>ID</label>
+                    <input id="id" class="form-control" readonly>
+                </div>
+
+                <div class="mb-2">
+                    <label>Judul</label>
+                    <input id="title" class="form-control">
+                </div>
+
+                <div class="mb-2">
+                    <label>Poster URL / Path</label>
+                    <input id="poster" class="form-control">
+                </div>
+
+                <div class="mb-2">
+                    <label>Upload Poster</label>
+                    <input id="poster-file" type="file" accept="image/*" class="form-control">
+                    <div class="form-text muted">Akan disimpan ke /media/poster/</div>
+                </div>
+
+                <div class="mb-2">
+                    <label>Chapters</label>
+                    <input id="chapters" type="number" class="form-control">
+                </div>
+
+                <div class="mb-2">
+                    <label>Genres (pisahkan dengan koma)</label>
+                    <input id="genres" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Synopsis</label>
+                    <textarea id="synopsis" rows="4" class="form-control"></textarea>
+                </div>
+
+                <hr class="my-4">
+
+                <h5>👤 Characters</h5>
+
+                <div class="row">
+                    <!-- Character List -->
                     <div class="col-md-4">
-                        <label class="form-label">ID (unik)</label>
-                        <input id="id" class="form-control" required />
+                        <button class="btn btn-sm btn-success mb-2" onclick="newCharacter()">+ Character</button>
+                        <ul id="char-list" class="list-group"></ul>
                     </div>
+
+                    <!-- Character Form -->
                     <div class="col-md-8">
-                        <label class="form-label">Judul</label>
-                        <input id="title" class="form-control" required />
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Poster (path)</label>
-                        <input id="poster" class="form-control" placeholder="media/xxx.jpg" />
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Chapter</label>
-                        <input id="chapters" type="number" class="form-control" />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Genre (koma)</label>
-                        <input id="genres" class="form-control" />
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Sinopsis</label>
-                        <textarea id="synopsis" rows="3" class="form-control"></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Upload Poster</label>
-                        <input id="imageInput" type="file" accept="image/*" class="form-control" />
-                        <div class="muted">File akan disimpan ke folder <code>media/</code></div>
+                        <div class="mb-2">
+                            <label>Nama</label>
+                            <input id="c-name" class="form-control">
+                        </div>
+
+                        <div class="mb-2">
+                            <label>Image (path / URL)</label>
+                            <input id="c-image" class="form-control">
+                        </div>
+
+                        <div class="mb-2">
+                            <label>Upload Character Image</label>
+                            <input id="char-file" type="file" accept="image/*" class="form-control">
+                            <div class="form-text muted">Akan disimpan ke /media/character/</div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label>Debut Chapter</label>
+                            <input id="c-debut" type="number" class="form-control">
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <input id="chip-input" class="form-control" placeholder="Ketik chapter (contoh: 5-6)">
+                            <button id="chip-add" class="btn btn-outline-secondary">
+                                + Add
+                            </button>
+                        </div>
+                        <div id="chips" class="d-flex flex-wrap gap-2 mt-2"></div>
+
+
+                        <div class="mb-2">
+                            <label>Description</label>
+                            <textarea id="c-desc" rows="3" class="form-control"></textarea>
+                        </div>
+
+                        <button class="btn btn-sm btn-primary" onclick="saveCharacter()">Simpan Character</button>
+                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteCharacter()">Hapus</button>
                     </div>
                 </div>
-                <div class="mt-3 d-flex gap-2">
-                    <button class="btn btn-success">Tambah / Update Lokal</button>
-                    <button type="button" id="reset" class="btn btn-secondary">Reset</button>
-                </div>
-            </form>
-        </div>
 
-        <!-- RAW JSON -->
-        <div class="card p-3">
-            <h6>Preview JSON</h6>
-            <pre id="raw"></pre>
-        </div>
+                <hr>
 
-    </main>
+                <button id="btn-commit" class="btn btn-primary" onclick="save()" disabled>
+                    💾 Commit!
+                </button>
+
+                <button class="btn btn-outline-info ms-2" onclick="openPreview()">
+                    👀 Preview
+                </button>
+                <button class="btn btn-outline-danger ms-2" onclick="remove()">🗑 Hapus</button>
+
+                <div id="status" class="mt-3 muted"></div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        /* ==========================
-           KONFIGURASI PENTING
-        ========================== */
+        const cName = document.getElementById('c-name')
+        const cImage = document.getElementById('c-image')
+        const cDebut = document.getElementById('c-debut')
+        const cDesc = document.getElementById('c-desc')
+        const secret = document.getElementById('secret')
 
-        // URL function (jika editor di Netlify, biarkan ini)
-        const FUNCTION_URL = "/.netlify/functions/commit";
 
-        // HARUS SAMA dengan EDITOR_SECRET di Netlify
-        const EDITOR_SECRET_CLIENT = "manhwa-toko-editor";
+        let DB = { manhwas: [] }
+        let currentIndex = null
+        let imagesQueue = []
+        let actionChapters = []
+        let isSecretValid = false
 
-        /* ==========================
-           LOGIC
-        ========================== */
+        // LOAD JSON
+        fetch('/manhwas.json')
+            .then(r => r.json())
+            .then(j => {
+                DB = j
+                renderList()
+            })
 
-        let DB = { manhwas: [] };
-
-        const listEl = document.getElementById("list");
-        const rawEl = document.getElementById("raw");
-        const emptyEl = document.getElementById("empty");
-
-        async function loadData() {
-            try {
-                const r = await fetch("manhwas.json?_=" + Date.now());
-                DB = await r.json();
-            } catch {
-                DB = { manhwas: [] };
-            }
-            render();
+        function renderList() {
+            const list = document.getElementById('list')
+            list.innerHTML = ''
+            DB.manhwas.forEach((m, i) => {
+                const li = document.createElement('li')
+                li.className = 'list-group-item list-group-item-action'
+                li.textContent = m.title
+                li.onclick = () => load(i)
+                list.appendChild(li)
+            })
         }
 
-        function render(filter = "") {
-            listEl.innerHTML = "";
-            const data = DB.manhwas.filter(m =>
-                !filter ||
-                m.title.toLowerCase().includes(filter) ||
-                (m.genres || []).join(",").toLowerCase().includes(filter)
-            );
+        function load(i) {
+            const m = DB.manhwas[i]
+            currentIndex = i
+            formTitle(m.title)
 
-            emptyEl.style.display = data.length ? "none" : "block";
+            id.value = m.id
+            title.value = m.title
+            poster.value = m.poster || ''
+            chapters.value = m.chapters || ''
+            genres.value = (m.genres || []).join(', ')
+            synopsis.value = m.synopsis || ''
+            renderCharacters()
 
-            data.forEach(m => {
-                const div = document.createElement("div");
-                div.className = "col-md-6 col-lg-4";
-                div.innerHTML = `
-      <div class="card p-2">
-        <div class="d-flex gap-2">
-          <img class="poster" src="${m.poster || 'https://placehold.co/120x180'}">
-          <div>
-            <strong>${m.title}</strong><br>
-            <span class="muted">Ch: ${m.chapters || "-"}</span><br>
-            <span class="muted">${(m.genres || []).join(", ")}</span><br>
-            <button class="btn btn-sm btn-outline-light mt-2" onclick="edit('${m.id}')">Edit</button>
-            <button class="btn btn-sm btn-outline-danger mt-2" onclick="del('${m.id}')">Hapus</button>
-          </div>
-        </div>
-      </div>
-    `;
-                listEl.appendChild(div);
-            });
-
-            rawEl.textContent = JSON.stringify(DB, null, 2);
         }
 
-        window.edit = id => {
-            const m = DB.manhwas.find(x => x.id === id);
-            if (!m) return;
-            mode.value = "edit";
-            id.value = m.id; title.value = m.title; poster.value = m.poster || "";
-            chapters.value = m.chapters || ""; genres.value = (m.genres || []).join(",");
-            synopsis.value = m.synopsis || "";
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        };
+        function newManhwa() {
+            currentIndex = null
+            formTitle('Manhwa Baru')
+            id.value = ''
+            title.value = ''
+            poster.value = ''
+            chapters.value = ''
+            genres.value = ''
+            synopsis.value = ''
+        }
 
-        window.del = id => {
-            if (confirm("Hapus manhwa ini?")) {
-                DB.manhwas = DB.manhwas.filter(x => x.id !== id);
-                render();
-            }
-        };
+        function formTitle(t) {
+            document.getElementById('form-title').textContent = t
+        }
 
-        form.onsubmit = e => {
-            e.preventDefault();
-            const m = {
+        // helper validasi
+        function isDuplicateManhwaId(id) {
+            return DB.manhwas.some((m, i) =>
+                m.id === id && i !== currentIndex
+            )
+        }
+
+        function isDuplicateManhwaTitle(title) {
+            return DB.manhwas.some((m, i) =>
+                m.title.toLowerCase() === title.toLowerCase() &&
+                i !== currentIndex
+            )
+        }
+
+        function isDuplicateCharacterName(name) {
+            const chars = DB.manhwas[currentIndex]?.characters || []
+            return chars.some((c, i) =>
+                c.name.toLowerCase() === name.toLowerCase() &&
+                i !== currentCharIndex
+            )
+        }
+
+
+        function save() {
+            const data = {
                 id: id.value.trim(),
                 title: title.value.trim(),
                 poster: poster.value.trim(),
-                chapters: +chapters.value || 0,
-                genres: genres.value.split(",").map(x => x.trim()).filter(Boolean),
-                synopsis: synopsis.value.trim()
-            };
-            if (!m.id || !m.title) return alert("ID & Judul wajib");
-            DB.manhwas = DB.manhwas.filter(x => x.id !== m.id);
-            DB.manhwas.push(m);
-            form.reset(); mode.value = "add"; render();
-        };
-
-        reset.onclick = () => { form.reset(); mode.value = "add"; };
-
-        filter.oninput = () => render(filter.value.toLowerCase());
-
-        commit.onclick = async () => {
-            const images = [];
-            const f = imageInput.files[0];
-            if (f) {
-                const b64 = await toBase64(f);
-                const fname = Date.now() + "-" + f.name.replace(/\s+/g, "-");
-                images.push({ filename: fname, content_base64: b64 });
-                DB.manhwas.at(-1).poster = "media/" + fname;
+                chapters: Number(chapters.value),
+                genres: genres.value.split(',').map(g => g.trim()).filter(Boolean),
+                synopsis: synopsis.value.trim(),
+                characters: []
             }
 
-            const res = await fetch(FUNCTION_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-editor-secret": EDITOR_SECRET_CLIENT
-                },
-                body: JSON.stringify({ manhwas: DB.manhwas, images })
-            });
+            if (!data.id || !data.title) {
+                alert('ID dan Judul wajib diisi')
+                return
+            }
 
-            const j = await res.json();
-            if (j.ok) alert("✅ Commit sukses ke GitHub");
-            else alert("❌ Gagal: " + j.error);
-        };
+            if (isDuplicateManhwaId(data.id)) {
+                alert(`ID "${data.id}" sudah digunakan`)
+                return
+            }
 
-        function toBase64(f) {
-            return new Promise(r => {
-                const fr = new FileReader();
-                fr.onload = () => r(fr.result.split(",")[1]);
-                fr.readAsDataURL(f);
-            });
+            if (isDuplicateManhwaTitle(data.title)) {
+                if (!confirm(`Judul "${data.title}" sudah ada. Tetap simpan?`)) {
+                    return
+                }
+            }
+
+            if (currentIndex === null) {
+                DB.manhwas.push(data)
+            } else {
+                DB.manhwas[currentIndex] = {
+                    ...DB.manhwas[currentIndex],
+                    ...data
+                }
+            }
+
+            commit()
         }
 
-        loadData();
+        function remove() {
+            if (currentIndex === null) return
+            if (!confirm('Hapus manhwa ini?')) return
+            DB.manhwas.splice(currentIndex, 1)
+            currentIndex = null
+            renderList()
+        }
+
+        // validasi secret
+        async function validateSecret() {
+            const val = secret.value.trim()
+            const status = document.getElementById('secret-status')
+            const btn = document.getElementById('btn-commit')
+
+            if (!val) {
+                status.textContent = ''
+                status.className = 'form-text'
+                btn.disabled = true
+                isSecretValid = false
+                return
+            }
+
+            status.textContent = '⏳ Mengecek secret...'
+            status.className = 'form-text text-muted'
+            btn.disabled = true
+
+            try {
+                const res = await fetch('/.netlify/functions/commit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-editor-secret': val
+                    },
+                    body: JSON.stringify({}) // kosong, cuma test auth
+                })
+
+                if (res.status === 401) {
+                    status.textContent = '❌ Editor secret salah'
+                    status.className = 'form-text text-danger'
+                    isSecretValid = false
+                    btn.disabled = true
+                    return
+                }
+
+                if (!res.ok) {
+                    status.textContent = '⚠️ Server error'
+                    status.className = 'form-text text-warning'
+                    btn.disabled = true
+                    isSecretValid = false
+                    return
+                }
+
+                // VALID
+                status.textContent = '✅ Editor secret valid'
+                status.className = 'form-text text-success'
+                btn.disabled = false
+                isSecretValid = true
+
+            } catch (err) {
+                status.textContent = '⚠️ Gagal menghubungi server'
+                status.className = 'form-text text-warning'
+                btn.disabled = true
+                isSecretValid = false
+            }
+        }
+
+        secret.addEventListener('blur', validateSecret)
+
+        function commit() {
+            status.textContent = '⏳ Mengirim ke GitHub...'
+
+            fetch('/.netlify/functions/commit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-editor-secret': secret.value
+                },
+                body: JSON.stringify({
+                    manhwas: DB,
+                    images: imagesQueue
+                })
+            })
+                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) throw r.error
+                    imagesQueue = []
+                    status.textContent = '✅ Berhasil commit ke GitHub'
+                    renderList()
+                })
+                .catch(err => {
+                    status.innerHTML = `<span class="danger">❌ ${err}</span>`
+                })
+        }
+
+        // Helper file base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader()
+                reader.onload = () => {
+                    const base64 = reader.result.split(',')[1] // HAPUS prefix
+                    resolve(base64)
+                }
+                reader.onerror = reject
+                reader.readAsDataURL(file)
+            })
+        }
+
+        // handle upload poster
+        document.getElementById('poster-file').addEventListener('change', async (e) => {
+            const file = e.target.files[0]
+            if (!file || currentIndex === null) return
+
+            const ext = file.name.split('.').pop()
+            const filename = `poster/${id.value}.${ext}`
+
+            const base64 = await fileToBase64(file)
+
+            imagesQueue.push({
+                filename,
+                content_base64: base64
+            })
+
+            poster.value = `/media/${filename}`
+        })
+
+        // handle upload character image
+        document.getElementById('char-file').addEventListener('change', async (e) => {
+            const file = e.target.files[0]
+            if (!file || currentIndex === null || currentCharIndex === null) return
+
+            const ext = file.name.split('.').pop()
+            const safeName = cName.value.toLowerCase().replace(/\s+/g, '-')
+            const filename = `character/${safeName}.${ext}`
+
+            const base64 = await fileToBase64(file)
+
+            imagesQueue.push({
+                filename,
+                content_base64: base64
+            })
+
+            DB.manhwas[currentIndex].characters[currentCharIndex].image =
+                `/media/${filename}`
+
+            cImage.value = `/media/${filename}`
+        })
+
+        // render chip function
+        function renderChips() {
+            const wrap = document.getElementById('chips')
+            wrap.innerHTML = ''
+
+            actionChapters.forEach((ch, i) => {
+                const chip = document.createElement('div')
+                chip.className = 'chip'
+                chip.innerHTML = `
+                    ${ch}
+                    <button title="hapus">×</button>
+                    `
+                chip.querySelector('button').onclick = () => {
+                    actionChapters.splice(i, 1)
+                    renderChips()
+                }
+                wrap.appendChild(chip)
+            })
+        }
+
+        // input chip enter to add
+        document.getElementById('chip-input').addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return
+            e.preventDefault()
+
+            const val = e.target.value.trim()
+            if (!val) return
+            if (actionChapters.includes(val)) return // cegah duplikat
+
+            actionChapters.push(val)
+            e.target.value = ''
+            renderChips()
+        })
+
+        // enter chip versi hp
+        function addChipFromInput() {
+            const input = document.getElementById('chip-input')
+            const val = input.value.trim()
+            if (!val) return
+            if (actionChapters.includes(val)) return
+
+            actionChapters.push(val)
+            input.value = ''
+            renderChips()
+        }
+
+        // listener mobile
+        document.getElementById('chip-add')
+            .addEventListener('click', addChipFromInput);
+
+        document.getElementById('chip-input')
+            .addEventListener('blur', () => {
+                addChipFromInput()
+            });
+
+        // generate ID otomatis
+        function slugify(text) {
+            return text
+                .toLowerCase()
+                .trim()
+                .replace(/[^\w\s-]/g, '')   // buang simbol
+                .replace(/\s+/g, '-')       // spasi → dash
+                .replace(/-+/g, '-')        // dash ganda
+        }
+
+        document.getElementById('title')
+            .addEventListener('blur', () => {
+                if (currentIndex !== null) return // jangan overwrite saat edit
+
+                const t = title.value.trim()
+                if (!t) return
+
+                id.value = slugify(t)
+            })
+
+        // live preview generate ID
+        document.getElementById('title')
+            .addEventListener('input', () => {
+                if (currentIndex !== null) return
+                id.value = slugify(title.value)
+            })
+
+        // fungsi preview
+        function openPreview() {
+            // ambil data terbaru dari form
+            const previewManhwa = {
+                title: title.value,
+                poster: poster.value,
+                chapters: chapters.value,
+                genres: genres.value.split(',').map(g => g.trim()),
+                synopsis: synopsis.value,
+                characters: DB.manhwas[currentIndex]?.characters || []
+            }
+
+            document.getElementById('preview-title').textContent = previewManhwa.title
+            document.getElementById('preview-poster').src =
+                previewManhwa.poster || 'https://placehold.co/600x900?text=No+Image'
+            document.getElementById('preview-chapters').textContent =
+                previewManhwa.chapters
+            document.getElementById('preview-synopsis').textContent =
+                previewManhwa.synopsis
+
+            document.getElementById('preview-genres').innerHTML =
+                previewManhwa.genres
+                    .map(g => `<span class="badge bg-secondary me-1">${g}</span>`)
+                    .join('')
+
+            const wrap = document.getElementById('preview-chars')
+            wrap.innerHTML = ''
+
+            previewManhwa.characters.forEach(c => {
+                const div = document.createElement('div')
+                div.className = 'd-flex gap-3 mb-3'
+                div.innerHTML = `
+                                <img src="${c.image || 'https://placehold.co/80x80'}"
+                                    width="80" height="80"
+                                    class="rounded"
+                                    style="object-fit:cover">
+                                <div>
+                                    <strong>${c.name}</strong>
+                                    <div class="text-muted small">
+                                    Debut: ${c.debut_chapter || '-'}
+                                    </div>
+                                    <div class="small">${c.description || ''}</div>
+                                </div>
+                                `
+                wrap.appendChild(div)
+            })
+
+            document.getElementById('preview').classList.remove('d-none')
+        }
+
+        // tutup preview
+        function closePreview() {
+            document.getElementById('preview').classList.add('d-none')
+        }
+
+
     </script>
+    <script>
+        let currentCharIndex = null
+
+        function renderCharacters() {
+            const ul = document.getElementById('char-list')
+            ul.innerHTML = ''
+
+            if (currentIndex === null) return
+
+            const chars = DB.manhwas[currentIndex].characters || []
+            DB.manhwas[currentIndex].characters = chars
+
+            chars.forEach((c, i) => {
+                const li = document.createElement('li')
+                li.className = 'list-group-item list-group-item-action'
+                li.textContent = c.name
+                li.onclick = () => loadCharacter(i)
+                ul.appendChild(li)
+            })
+        }
+
+        function loadCharacter(i) {
+            const c = DB.manhwas[currentIndex].characters[i]
+            currentCharIndex = i
+
+            cName.value = c.name || ''
+            cImage.value = c.image || ''
+            cDebut.value = c.debut_chapter ?? ''
+            cDesc.value = c.description || ''
+
+            actionChapters = [...(c.action_chapters || [])]
+            renderChips()
+        }
+
+
+        function newCharacter() {
+            currentCharIndex = null
+            cName.value = ''
+            cImage.value = ''
+            cDebut.value = ''
+            cDesc.value = ''
+            actionChapters = []
+            renderChips()
+        }
+
+        function saveCharacter() {
+            if (currentIndex === null) {
+                alert('Pilih manhwa dulu')
+                return
+            }
+
+            const char = {
+                name: cName.value.trim(),
+                image: cImage.value.trim(),
+                debut_chapter: Number(cDebut.value),
+                description: cDesc.value.trim(),
+                action_chapters: [...actionChapters]
+            }
+
+            if (!char.name) {
+                alert('Nama character wajib')
+                return
+            }
+
+            const chars = DB.manhwas[currentIndex].characters
+
+            if (isDuplicateCharacterName(char.name)) {
+                alert(`Character "${char.name}" sudah ada di manhwa ini`)
+                return
+            }
+
+            if (currentCharIndex === null) {
+                chars.push(char)
+            } else {
+                chars[currentCharIndex] = char
+            }
+
+            renderCharacters()
+        }
+
+        function deleteCharacter() {
+            if (currentCharIndex === null) {
+                alert('Pilih character dulu')
+                return
+            }
+
+            if (!confirm('Yakin hapus character ini?')) return
+
+            DB.manhwas[currentIndex].characters.splice(currentCharIndex, 1)
+            currentCharIndex = null
+            renderCharacters()
+            newCharacter()
+        }
+    </script>
+
+
 </body>
 
 </html>
