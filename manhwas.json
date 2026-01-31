@@ -16,7 +16,10 @@
           "image": "/media/character/jinsoo.jpg",
           "debut_chapter": 1,
           "description": "Protagonis yang pendiam dan memiliki potensi besar.",
-          "action_chapters": []
+          "action_chapters": [],
+          "isCommitted": true,
+          "isSaved": false,
+          "isDraft": false
         },
         {
           "name": "Ahn Dajeong",
@@ -31,7 +34,10 @@
             "15-18 (lingerie)",
             "22-23",
             "27-29"
-          ]
+          ],
+          "isCommitted": true,
+          "isSaved": false,
+          "isDraft": false
         },
         {
           "name": "Yeseul",
@@ -43,7 +49,10 @@
             "5-6",
             "11-20",
             "31"
-          ]
+          ],
+          "isCommitted": true,
+          "isSaved": false,
+          "isDraft": false
         },
         {
           "name": "Yoonji",
@@ -55,30 +64,10 @@
             "5-6",
             "11-20",
             "31"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "city-of-darkness",
-      "title": "City of Darkness",
-      "poster": "https://placehold.co/600x900?text=City+of+Darkness",
-      "chapters": 78,
-      "genres": [
-        "Drama",
-        "Supernatural"
-      ],
-      "synopsis": "Kisah kota yang dihantui misteri dan sekumpulan pemuda yang mencoba mengungkapnya.",
-      "characters": [
-        {
-          "name": "Min-jun",
-          "image": "https://placehold.co/200x200?text=Minjun",
-          "debut_chapter": 2,
-          "description": "Detektif amatir yang bertingkah konyol tapi cerdik.",
-          "action_chapters": [
-            "12-13",
-            "21-23"
-          ]
+          ],
+          "isCommitted": true,
+          "isSaved": false,
+          "isDraft": false
         }
       ]
     },
@@ -99,9 +88,24 @@
           "image": "/media/character/taeyang.jpg",
           "debut_chapter": 1,
           "description": "Main character, dateng ke dunia lain, alih-alih jadi budak, dia jadi trainer biar bisa ketemu istri-istri lain",
-          "action_chapters": []
+          "action_chapters": [],
+          "isCommitted": true,
+          "isSaved": false,
+          "isDraft": false
         }
       ]
+    },
+    {
+      "id": "city-of-darkness",
+      "title": "City of Darkness",
+      "poster": "https://placehold.co/600x900?text=City+of+Darkness",
+      "chapters": 78,
+      "genres": [
+        "Drama",
+        "Supernatural"
+      ],
+      "synopsis": "Kisah kota yang dihantui misteri dan sekumpulan pemuda yang mencoba mengungkapnya.",
+      "characters": []
     }
   ]
 }
