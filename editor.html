@@ -127,54 +127,64 @@
 
                 <hr class="my-4">
 
-                <h5>👤 Characters</h5>
+                <div id="character-section">
 
-                <div class="row">
-                    <!-- Character List -->
-                    <div class="col-md-4">
-                        <button class="btn btn-sm btn-success mb-2" onclick="newCharacter()">+ Character</button>
-                        <ul id="char-list" class="list-group"></ul>
+
+                    <h3>👤 Characters</h3>
+                    <div id="character-hint" class="form-text text-warning mb-2">
+                        Pilih atau simpan manhwa terlebih dahulu untuk menambah character
                     </div>
 
-                    <!-- Character Form -->
-                    <div class="col-md-8">
-                        <div class="mb-2">
-                            <label>Nama</label>
-                            <input id="c-name" class="form-control">
+                    <br>
+
+                    <div class="row">
+                        <!-- Character List -->
+                        <div class="col-md-4">
+                            <button class="btn btn-sm btn-success mb-2" onclick="newCharacter()">+ Character</button>
+                            <ul id="char-list" class="list-group"></ul>
                         </div>
 
-                        <div class="mb-2">
-                            <label>Image (path / URL)</label>
-                            <input id="c-image" class="form-control">
+                        <!-- Character Form -->
+                        <div class="col-md-8">
+                            <div class="mb-2">
+                                <label>Nama</label>
+                                <input id="c-name" class="form-control">
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Image (path / URL)</label>
+                                <input id="c-image" class="form-control">
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Upload Character Image</label>
+                                <input id="char-file" type="file" accept="image/*" class="form-control">
+                                <div class="form-text muted">Akan disimpan ke /media/character/</div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Debut Chapter</label>
+                                <input id="c-debut" type="number" class="form-control">
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <input id="chip-input" class="form-control" placeholder="Ketik chapter (contoh: 5-6)">
+                                <button id="chip-add" class="btn btn-outline-secondary">
+                                    + Add
+                                </button>
+                            </div>
+                            <div id="chips" class="d-flex flex-wrap gap-2 mt-2"></div>
+
+
+                            <div class="mb-2">
+                                <label>Description</label>
+                                <textarea id="c-desc" rows="3" class="form-control"></textarea>
+                            </div>
+
+                            <button class="btn btn-sm btn-primary" onclick="saveCharacter()">Simpan Character</button>
+                            <button class="btn btn-sm btn-outline-danger ms-2"
+                                onclick="deleteCharacter()">Hapus</button>
                         </div>
-
-                        <div class="mb-2">
-                            <label>Upload Character Image</label>
-                            <input id="char-file" type="file" accept="image/*" class="form-control">
-                            <div class="form-text muted">Akan disimpan ke /media/character/</div>
-                        </div>
-
-                        <div class="mb-2">
-                            <label>Debut Chapter</label>
-                            <input id="c-debut" type="number" class="form-control">
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <input id="chip-input" class="form-control" placeholder="Ketik chapter (contoh: 5-6)">
-                            <button id="chip-add" class="btn btn-outline-secondary">
-                                + Add
-                            </button>
-                        </div>
-                        <div id="chips" class="d-flex flex-wrap gap-2 mt-2"></div>
-
-
-                        <div class="mb-2">
-                            <label>Description</label>
-                            <textarea id="c-desc" rows="3" class="form-control"></textarea>
-                        </div>
-
-                        <button class="btn btn-sm btn-primary" onclick="saveCharacter()">Simpan Character</button>
-                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteCharacter()">Hapus</button>
                     </div>
                 </div>
 
@@ -241,7 +251,7 @@
             genres.value = (m.genres || []).join(', ')
             synopsis.value = m.synopsis || ''
             renderCharacters()
-
+            updateCharacterFormState()
         }
 
         function newManhwa() {
@@ -262,6 +272,8 @@
 
             // 🔑 RESET TOTAL CHARACTER CONTEXT
             newCharacter()
+
+            updateCharacterFormState()
         }
 
 
@@ -637,10 +649,50 @@
             document.getElementById('preview').classList.add('d-none')
         }
 
+        // fungsi disable dulu semua character
+        function updateCharacterFormState() {
+            const disabled = currentIndex === null
+
+            // semua input & textarea character
+            document.querySelectorAll(
+                '#character-section input, #character-section textarea, #character-section button'
+            ).forEach(el => {
+                // kecuali tombol "+ Manhwa Baru"
+                if (el.id === 'chip-add') {
+                    el.disabled = disabled
+                } else {
+                    el.disabled = disabled
+                }
+            })
+
+            // visual hint
+            document.getElementById('character-section').style.opacity =
+                disabled ? '0.5' : '1'
+        }
+
+        // toggle visibilitas disabled character
+        function updateCharacterFormState() {
+            const disabled = currentIndex === null
+
+            document.getElementById('character-hint').style.display =
+                disabled ? 'block' : 'none'
+
+            document.querySelectorAll(
+                '#character-section input, #character-section textarea, #character-section button'
+            ).forEach(el => {
+                el.disabled = disabled
+            })
+
+            document.getElementById('character-section').style.opacity =
+                disabled ? '0.5' : '1'
+        }
+
 
     </script>
     <script>
         let currentCharIndex = null
+        updateCharacterFormState()
+
 
         function renderCharacters() {
             const ul = document.getElementById('char-list')
