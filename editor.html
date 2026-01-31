@@ -446,44 +446,73 @@
 
         secret.addEventListener('blur', validateSecret)
 
-        function commit() {
-            status.textContent = '⏳ Mengirim ke GitHub...'
+        function showModal(p, t) {
+            progressModal.classList.remove('d-none')
+            pmBar.style.width = p + '%'
+            pmBar.textContent = p + '%'
+            pmText.textContent = t
+        }
 
-            fetch('/api/commit', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-editor-secret': secret.value
-                },
-                body: JSON.stringify({
-                    manhwas: DB,
-                    images: imagesQueue
-                })
-            })
-                .then(r => r.json())
-                .then(r => {
-                    if (!r.ok) throw r.error
-                    imagesQueue = []
+        function hideModal() {
+            setTimeout(() => progressModal.classList.add('d-none'), 800)
+        }
 
-                    // tandai semua character yang sudah disimpan jadi committed
-                    DB.manhwas.forEach(m => {
-                        (m.characters || []).forEach(c => {
-                            // semua yang tidak explicit draft -> anggap committed
-                            c.isCommitted = true
-                            c.isSaved = false
-                            c.isDraft = false
-                        })
+        async function commit() {
+            showModal(0, 'Menyiapkan commit…')
+
+            try {
+                const total = imagesQueue.length + 2
+                let step = 0
+
+                // Upload images
+                for (const img of imagesQueue) {
+                    step++
+                    showModal(Math.round(step / total * 100),
+                        `Upload ${img.filename} (${step}/${total})`)
+
+                    const r = await fetch('/api/upload-image', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-editor-secret': secret.value
+                        },
+                        body: JSON.stringify(img)
                     })
 
-                    status.textContent = '✅ Berhasil commit ke GitHub'
-                    renderList()
-                    // jika kamu sedang melihat manhwa sekarang, re-render characters
-                    renderCharacters()
+                    const j = await r.json()
+                    if (!j.ok) throw j.error
+                }
+
+                // Update JSON
+                step++
+                showModal(Math.round(step / total * 100), 'Update manhwas.json')
+
+                const r = await fetch('/api/update-json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-editor-secret': secret.value
+                    },
+                    body: JSON.stringify({ manhwas: DB })
                 })
-                .catch(err => {
-                    status.innerHTML = `<span class="danger">❌ ${err}</span>`
-                })
+
+                const j = await r.json()
+                if (!j.ok) throw j.error
+
+                // Verify
+                step++
+                showModal(100, 'Verifikasi…')
+                await fetch('/manhwas.json?t=' + Date.now())
+
+                imagesQueue = []
+                status.textContent = '✅ Commit berhasil'
+                hideModal()
+
+            } catch (e) {
+                pmText.textContent = '❌ ' + e
+            }
         }
+
 
         // Helper file base64
         function fileToBase64(file) {
@@ -906,6 +935,16 @@
         }
     </script>
 
+    <div id="progressModal" class="d-none" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;
+         display:flex;align-items:center;justify-content:center">
+        <div class="bg-dark p-4 rounded text-white" style="width:420px">
+            <h5 id="pmTitle">Mengirim ke GitHub…</h5>
+            <div class="progress mt-3">
+                <div id="pmBar" class="progress-bar" style="width:0%">0%</div>
+            </div>
+            <div id="pmText" class="small mt-2 text-muted">Menyiapkan…</div>
+        </div>
+    </div>
 
 </body>
 
