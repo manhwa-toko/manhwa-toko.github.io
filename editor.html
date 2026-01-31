@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Editor Manhwa (Private)</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #0b0d10;
+            color: #e6eef8;
+        }
+
+        .card {
+            background: #111827;
+            border: 1px solid #1f2937;
+        }
+
+        .muted {
+            color: #9ca3af;
+            font-size: .9rem;
+        }
+
+        img.poster {
+            width: 72px;
+            height: 108px;
+            object-fit: cover;
+            border-radius: 6px
+        }
+
+        pre {
+            background: #020617;
+            color: #c7d2fe;
+            padding: 12px;
+            border-radius: 6px;
+            max-height: 220px;
+            overflow: auto
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container py-4">
+
+        <h3>📚 Manhwa Editor <span class="muted">(auto commit GitHub)</span></h3>
+        <p class="muted">Halaman ini PRIVATE. Semua perubahan langsung di-commit ke GitHub.</p>
+
+        <!-- LIST -->
+        <div class="card p-3 mb-3">
+            <div class="d-flex gap-2 mb-2">
+                <input id="filter" class="form-control form-control-sm" placeholder="Cari judul / genre..." />
+                <button id="reload" class="btn btn-sm btn-outline-secondary">Reload</button>
+                <button id="commit" class="btn btn-sm btn-primary ms-auto">💾 Simpan & Commit</button>
+            </div>
+            <div id="list" class="row g-2"></div>
+            <div id="empty" class="muted mt-2">Loading...</div>
+        </div>
+
+        <!-- FORM -->
+        <div class="card p-3 mb-3">
+            <h5>Tambah / Edit Manhwa</h5>
+            <form id="form">
+                <input type="hidden" id="mode" value="add" />
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <label class="form-label">ID (unik)</label>
+                        <input id="id" class="form-control" required />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Judul</label>
+                        <input id="title" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Poster (path)</label>
+                        <input id="poster" class="form-control" placeholder="media/xxx.jpg" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Chapter</label>
+                        <input id="chapters" type="number" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Genre (koma)</label>
+                        <input id="genres" class="form-control" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Sinopsis</label>
+                        <textarea id="synopsis" rows="3" class="form-control"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Upload Poster</label>
+                        <input id="imageInput" type="file" accept="image/*" class="form-control" />
+                        <div class="muted">File akan disimpan ke folder <code>media/</code></div>
+                    </div>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button class="btn btn-success">Tambah / Update Lokal</button>
+                    <button type="button" id="reset" class="btn btn-secondary">Reset</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- RAW JSON -->
+        <div class="card p-3">
+            <h6>Preview JSON</h6>
+            <pre id="raw"></pre>
+        </div>
+
+    </main>
+
+    <script>
+        /* ==========================
+           KONFIGURASI PENTING
+        ========================== */
+
+        // URL function (jika editor di Netlify, biarkan ini)
+        const FUNCTION_URL = "/.netlify/functions/commit";
+
+        // HARUS SAMA dengan EDITOR_SECRET di Netlify
+        const EDITOR_SECRET_CLIENT = "manhwa-toko-editor";
+
+        /* ==========================
+           LOGIC
+        ========================== */
+
+        let DB = { manhwas: [] };
+
+        const listEl = document.getElementById("list");
+        const rawEl = document.getElementById("raw");
+        const emptyEl = document.getElementById("empty");
+
+        async function loadData() {
+            try {
+                const r = await fetch("manhwas.json?_=" + Date.now());
+                DB = await r.json();
+            } catch {
+                DB = { manhwas: [] };
+            }
+            render();
+        }
+
+        function render(filter = "") {
+            listEl.innerHTML = "";
+            const data = DB.manhwas.filter(m =>
+                !filter ||
+                m.title.toLowerCase().includes(filter) ||
+                (m.genres || []).join(",").toLowerCase().includes(filter)
+            );
+
+            emptyEl.style.display = data.length ? "none" : "block";
+
+            data.forEach(m => {
+                const div = document.createElement("div");
+                div.className = "col-md-6 col-lg-4";
+                div.innerHTML = `
+      <div class="card p-2">
+        <div class="d-flex gap-2">
+          <img class="poster" src="${m.poster || 'https://placehold.co/120x180'}">
+          <div>
+            <strong>${m.title}</strong><br>
+            <span class="muted">Ch: ${m.chapters || "-"}</span><br>
+            <span class="muted">${(m.genres || []).join(", ")}</span><br>
+            <button class="btn btn-sm btn-outline-light mt-2" onclick="edit('${m.id}')">Edit</button>
+            <button class="btn btn-sm btn-outline-danger mt-2" onclick="del('${m.id}')">Hapus</button>
+          </div>
+        </div>
+      </div>
+    `;
+                listEl.appendChild(div);
+            });
+
+            rawEl.textContent = JSON.stringify(DB, null, 2);
+        }
+
+        window.edit = id => {
+            const m = DB.manhwas.find(x => x.id === id);
+            if (!m) return;
+            mode.value = "edit";
+            id.value = m.id; title.value = m.title; poster.value = m.poster || "";
+            chapters.value = m.chapters || ""; genres.value = (m.genres || []).join(",");
+            synopsis.value = m.synopsis || "";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+
+        window.del = id => {
+            if (confirm("Hapus manhwa ini?")) {
+                DB.manhwas = DB.manhwas.filter(x => x.id !== id);
+                render();
+            }
+        };
+
+        form.onsubmit = e => {
+            e.preventDefault();
+            const m = {
+                id: id.value.trim(),
+                title: title.value.trim(),
+                poster: poster.value.trim(),
+                chapters: +chapters.value || 0,
+                genres: genres.value.split(",").map(x => x.trim()).filter(Boolean),
+                synopsis: synopsis.value.trim()
+            };
+            if (!m.id || !m.title) return alert("ID & Judul wajib");
+            DB.manhwas = DB.manhwas.filter(x => x.id !== m.id);
+            DB.manhwas.push(m);
+            form.reset(); mode.value = "add"; render();
+        };
+
+        reset.onclick = () => { form.reset(); mode.value = "add"; };
+
+        filter.oninput = () => render(filter.value.toLowerCase());
+
+        commit.onclick = async () => {
+            const images = [];
+            const f = imageInput.files[0];
+            if (f) {
+                const b64 = await toBase64(f);
+                const fname = Date.now() + "-" + f.name.replace(/\s+/g, "-");
+                images.push({ filename: fname, content_base64: b64 });
+                DB.manhwas.at(-1).poster = "media/" + fname;
+            }
+
+            const res = await fetch(FUNCTION_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-editor-secret": EDITOR_SECRET_CLIENT
+                },
+                body: JSON.stringify({ manhwas: DB.manhwas, images })
+            });
+
+            const j = await res.json();
+            if (j.ok) alert("✅ Commit sukses ke GitHub");
+            else alert("❌ Gagal: " + j.error);
+        };
+
+        function toBase64(f) {
+            return new Promise(r => {
+                const fr = new FileReader();
+                fr.onload = () => r(fr.result.split(",")[1]);
+                fr.readAsDataURL(f);
+            });
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>
