@@ -362,11 +362,26 @@
 
         function remove() {
             if (currentIndex === null) return
-            if (!confirm('Hapus manhwa ini?')) return
+
+            const title = DB.manhwas[currentIndex].title
+            if (!confirm(`Hapus manhwa "${title}"?`)) return
+
+            // 🔑 HAPUS DARI ARRAY
             DB.manhwas.splice(currentIndex, 1)
+
+            // 🔑 RESET STATE
             currentIndex = null
+            currentCharIndex = null
+
+            // 🔑 RESET UI
+            newManhwa()
             renderList()
+            updateCharacterFormState()
+
+            // 🔑 COMMIT LANGSUNG (PENTING)
+            commit()
         }
+
 
         // validasi secret
         async function validateSecret() {
