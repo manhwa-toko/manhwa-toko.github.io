@@ -1,0 +1,93 @@
+:root{
+  --bg:#06060a;
+  --card:#0b0e12;
+  --muted:#c2c8d1;
+  --text:#ffffff;
+  --accent:#ffb86b;
+  --separator: rgba(255,255,255,0.08);
+  --card-border: rgba(255,255,255,0.06);
+  --chip-bg: rgba(255,255,255,0.04);
+}
+
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;margin:0}
+.app-header{border-bottom:1px solid var(--separator)}
+.brand{font-weight:700;color:var(--accent)}
+
+.card-manhwa{
+  background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
+  border:1px solid var(--card-border);
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.card-manhwa:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+
+.poster{width:100%;aspect-ratio:2/3;object-fit:cover;border-bottom:1px solid var(--separator)}
+
+.badge-genre{
+  background:rgba(255,255,255,0.04);
+  color:var(--muted);
+  border:1px solid rgba(255,255,255,0.03);
+  font-size:12px;
+  padding:3px 6px;
+}
+
+.chip{background:var(--chip-bg);padding:6px 10px;border-radius:999px;font-size:13px;color:var(--text);border:1px solid rgba(255,255,255,0.03);display:inline-block}
+
+.muted{color:var(--muted)}
+
+.detail-panel{position:fixed;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.85));display:flex;align-items:flex-start;justify-content:center;padding:16px;z-index:1050;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+.detail-card{
+  max-width:980px;width:100%;background:var(--card);border-radius:12px;overflow:auto;max-height:calc(100vh - 40px);box-shadow:0 12px 40px rgba(1,6,20,0.7);border:1px solid var(--card-border)
+}
+
+.detail-card .border-bottom{border-bottom:1px solid var(--separator)!important}
+#detail-title{color:var(--text)}
+#detail-synopsis{color:var(--muted);line-height:1.5}
+
+.character-img{width:84px;height:84px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+
+.list-group-item{background:transparent;border-left:0;border-right:0;border-top:0;padding-top:12px;padding-bottom:12px}
+
+.fw-semibold{color:var(--text);font-weight:600}
+.small.muted{color:var(--muted)}
+
+@media (max-width:576px){
+  .character-img{width:64px;height:64px}
+  .card-body{padding:0.75rem}
+  .detail-card{border-radius:10px}
+  .brand{font-size:1rem}
+  .detail-card .row > [class*='col-']{padding:0.75rem}
+}
+
+.empty-state{opacity:0.7;text-align:center;padding:60px 10px}
+
+.card[tabindex]:focus{outline:3px solid rgba(255,184,107,0.18);outline-offset:2px}
+
+.muted a{color:var(--muted)}
+
+/* dropdown menu for action chapters (dark theme) */
+.dropdown-action-chapters {
+  background: #0b0e12;
+  border: 1px solid rgba(255,255,255,0.06);
+  min-width: 160px;
+}
+
+.dropdown-action-chapters .dropdown-item {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.dropdown-action-chapters .dropdown-item:hover {
+  background: rgba(255,184,107,0.06);
+  color: var(--text);
+}
+
+.chip.dropdown-toggle {
+  cursor: pointer;
+  border: none;
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+/* make chips wrap nicely on small screens */
+.chips-wrap { display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:flex-end; }

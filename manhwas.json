@@ -1,0 +1,86 @@
+{
+  "manhwas": [
+    {
+      "id": "this-is-my-ark",
+      "title": "This is My Ark",
+      "poster": "/media/poster/this-is-my-ark.webp",
+      "chapters": 120,
+      "genres": [
+        "Harem",
+        "Tsundere"
+      ],
+      "synopsis": "Seorang pendekar terbangun di dunia lain dengan pedang legendaris...",
+      "characters": [
+        {
+          "name": "Jinsoo",
+          "image": "/media/character/jinsoo.jpg",
+          "debut_chapter": 1,
+          "description": "Protagonis yang pendiam dan memiliki potensi besar.",
+          "action_chapters": []
+        },
+        {
+          "name": "Ahn Dajeong",
+          "image": "/media/character/ahn dajeong.jpg",
+          "debut_chapter": 5,
+          "description": "Saingan sekaligus ally Ryu, ahli panahan.",
+          "action_chapters": [
+            "3",
+            "6-7",
+            "11",
+            "14",
+            "15-18 (lingerie)",
+            "22-23",
+            "27-29"
+          ]
+        },
+        {
+          "name": "Yeseul",
+          "image": "/media/character/yeseul.jpg",
+          "debut_chapter": 1,
+          "description": "Protagonis yang pendiam dan memiliki potensi besar.",
+          "action_chapters": [
+            "1",
+            "5-6",
+            "11-20",
+            "31"
+          ]
+        },
+        {
+          "name": "Yoonji",
+          "image": "/media/character/ahn dajeong.jpg",
+          "debut_chapter": 1,
+          "description": "Protagonis yang pendiam dan memiliki potensi besar.",
+          "action_chapters": [
+            "1",
+            "5-6",
+            "11-20",
+            "31"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "city-of-darkness",
+      "title": "City of Darkness",
+      "poster": "https://placehold.co/600x900?text=City+of+Darkness",
+      "chapters": 78,
+      "genres": [
+        "Drama",
+        "Supernatural"
+      ],
+      "synopsis": "Kisah kota yang dihantui misteri dan sekumpulan pemuda yang mencoba mengungkapnya.",
+      "characters": [
+        {
+          "name": "Min-jun",
+          "image": "https://placehold.co/200x200?text=Minjun",
+          "debut_chapter": 2,
+          "description": "Detektif amatir yang bertingkah konyol tapi cerdik.",
+          "action_chapters": [
+            "12-13",
+            "21-23"
+          ]
+        }
+      ]
+    }
+  ]
+}
