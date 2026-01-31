@@ -57,10 +57,10 @@
             <div id="preview-genres" class="mb-2"></div>
             <div class="mb-2">Chapters: <span id="preview-chapters"></span></div>
 
-            <h6>Sinopsis</h6>
-            <p id="preview-synopsis" class="text-muted"></p>
+            <h4>Sinopsis</h4>
+            <p id="preview-synopsis" class="text-light"></p>
 
-            <h6>Characters</h6>
+            <h4>Characters</h4>
             <div id="preview-chars"></div>
         </div>
     </div>
@@ -201,12 +201,13 @@
         const cDesc = document.getElementById('c-desc')
         const secret = document.getElementById('secret')
 
-
         let DB = { manhwas: [] }
         let currentIndex = null
         let imagesQueue = []
         let actionChapters = []
         let isSecretValid = false
+        let previewPosterURL = null
+        let previewCharacterImages = {}
 
         // LOAD JSON
         fetch('/manhwas.json')
@@ -246,13 +247,24 @@
         function newManhwa() {
             currentIndex = null
             formTitle('Manhwa Baru')
+
+            // reset manhwa form
             id.value = ''
             title.value = ''
             poster.value = ''
             chapters.value = ''
             genres.value = ''
             synopsis.value = ''
+
+            // reset list character
+            previewPosterURL = null   // 🔑 reset
+            document.getElementById('char-list').innerHTML = ''
+
+            // 🔑 RESET TOTAL CHARACTER CONTEXT
+            newCharacter()
         }
+
+
 
         function formTitle(t) {
             document.getElementById('form-title').textContent = t
@@ -430,7 +442,15 @@
         // handle upload poster
         document.getElementById('poster-file').addEventListener('change', async (e) => {
             const file = e.target.files[0]
-            if (!file || currentIndex === null) return
+            if (!file) return
+            if (!id.value) {
+                alert('Isi judul dulu agar ID terbentuk')
+                return
+            }
+
+
+            // 🔑 BUAT PREVIEW URL
+            previewPosterURL = URL.createObjectURL(file)
 
             const ext = file.name.split('.').pop()
             const filename = `poster/${id.value}.${ext}`
@@ -453,6 +473,10 @@
             const ext = file.name.split('.').pop()
             const safeName = cName.value.toLowerCase().replace(/\s+/g, '-')
             const filename = `character/${safeName}.${ext}`
+
+            // 🔑 PREVIEW URL
+            const objectURL = URL.createObjectURL(file)
+            previewCharacterImages[safeName] = objectURL
 
             const base64 = await fileToBase64(file)
 
@@ -563,7 +587,9 @@
 
             document.getElementById('preview-title').textContent = previewManhwa.title
             document.getElementById('preview-poster').src =
-                previewManhwa.poster || 'https://placehold.co/600x900?text=No+Image'
+                previewPosterURL ||
+                previewManhwa.poster ||
+                'https://placehold.co/600x900?text=No+Image'
             document.getElementById('preview-chapters').textContent =
                 previewManhwa.chapters
             document.getElementById('preview-synopsis').textContent =
@@ -580,8 +606,15 @@
             previewManhwa.characters.forEach(c => {
                 const div = document.createElement('div')
                 div.className = 'd-flex gap-3 mb-3'
+
+                const safeName = c.name.toLowerCase().replace(/\s+/g, '-')
+                const imgSrc =
+                    previewCharacterImages[safeName] ||
+                    c.image ||
+                    'https://placehold.co/80x80'
+
                 div.innerHTML = `
-                                <img src="${c.image || 'https://placehold.co/80x80'}"
+                                <img src="${imgSrc}"
                                     width="80" height="80"
                                     class="rounded"
                                     style="object-fit:cover">
