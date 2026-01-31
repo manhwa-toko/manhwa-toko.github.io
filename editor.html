@@ -449,7 +449,7 @@
         function commit() {
             status.textContent = '⏳ Mengirim ke GitHub...'
 
-            fetch('/.api/commit', {
+            fetch('/api/commit', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
