@@ -449,7 +449,7 @@
         function commit() {
             status.textContent = '⏳ Mengirim ke GitHub...'
 
-            fetch('/.netlify/functions/commit', {
+            fetch('/.api/commit', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
