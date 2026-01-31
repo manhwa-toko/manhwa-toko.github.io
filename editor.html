@@ -224,8 +224,20 @@
             .then(r => r.json())
             .then(j => {
                 DB = j
+                // pastikan setiap manhwa punya array characters dan beri flag committed
+                DB.manhwas = DB.manhwas || []
+                DB.manhwas.forEach(m => {
+                    m.characters = m.characters || []
+                    m.characters.forEach(c => {
+                        // karakter dari JSON dianggap sudah committed
+                        c.isCommitted = true
+                        c.isSaved = false
+                        c.isDraft = false
+                    })
+                })
                 renderList()
             })
+
 
         function renderList() {
             const list = document.getElementById('list')
@@ -434,8 +446,21 @@
                 .then(r => {
                     if (!r.ok) throw r.error
                     imagesQueue = []
+
+                    // tandai semua character yang sudah disimpan jadi committed
+                    DB.manhwas.forEach(m => {
+                        (m.characters || []).forEach(c => {
+                            // semua yang tidak explicit draft -> anggap committed
+                            c.isCommitted = true
+                            c.isSaved = false
+                            c.isDraft = false
+                        })
+                    })
+
                     status.textContent = '✅ Berhasil commit ke GitHub'
                     renderList()
+                    // jika kamu sedang melihat manhwa sekarang, re-render characters
+                    renderCharacters()
                 })
                 .catch(err => {
                     status.innerHTML = `<span class="danger">❌ ${err}</span>`
@@ -481,31 +506,68 @@
             poster.value = `/media/${filename}`
         })
 
-        // handle upload character image
+        // handle upload character image (fixed: allow upload for new character)
         document.getElementById('char-file').addEventListener('change', async (e) => {
             const file = e.target.files[0]
-            if (!file || currentIndex === null || currentCharIndex === null) return
+            if (!file) return
 
-            const ext = file.name.split('.').pop()
-            const safeName = cName.value.toLowerCase().replace(/\s+/g, '-')
+            if (currentIndex === null) {
+                alert('Pilih atau simpan manhwa terlebih dahulu sebelum upload gambar character.')
+                return
+            }
+
+            // ensure character exists: if not selected (new char), create placeholder
+            if (currentCharIndex === null) {
+                // create characters array if missing
+                DB.manhwas[currentIndex].characters = DB.manhwas[currentIndex].characters || []
+
+                // prepare a placeholder name (will be overwritten if user fills c-name and saves)
+                const placeholderName = cName.value.trim() || `char-${Date.now()}`
+
+                DB.manhwas[currentIndex].characters.push({
+                    name: placeholderName,
+                    image: '',
+                    debut_chapter: null,
+                    description: '',
+                    action_chapters: [],
+                    isDraft: true           // badge draft
+                })
+
+                currentCharIndex = DB.manhwas[currentIndex].characters.length - 1
+                // update UI list immediately so user sees the new character entry
+                renderCharacters()
+            }
+
+            const ext = file.name.split('.').pop().toLowerCase()
+            // safeName: prefer current cName if available, otherwise use DB name
+            const desiredName = (cName.value.trim() || DB.manhwas[currentIndex].characters[currentCharIndex].name || `char-${Date.now()}`)
+            const safeName = desiredName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
             const filename = `character/${safeName}.${ext}`
 
-            // 🔑 PREVIEW URL
-            const objectURL = URL.createObjectURL(file)
-            previewCharacterImages[safeName] = objectURL
+            // create preview object URL
+            try {
+                const objectURL = URL.createObjectURL(file)
+                previewCharacterImages[safeName] = objectURL
+            } catch (err) {
+                console.warn('Cannot create object URL for preview', err)
+            }
 
+            // convert to base64 and queue the image (so commit will include it)
             const base64 = await fileToBase64(file)
-
             imagesQueue.push({
                 filename,
                 content_base64: base64
             })
 
-            DB.manhwas[currentIndex].characters[currentCharIndex].image =
-                `/media/${filename}`
-
+            // attach path to the character in DB and UI
+            DB.manhwas[currentIndex].characters[currentCharIndex].image = `/media/${filename}`
             cImage.value = `/media/${filename}`
+
+            // make sure character list + preview chips are up-to-date
+            renderCharacters()
+            renderChips()
         })
+
 
         // render chip function
         function renderChips() {
@@ -704,17 +766,44 @@
 
             if (currentIndex === null) return
 
-            const chars = DB.manhwas[currentIndex].characters || []
-            DB.manhwas[currentIndex].characters = chars
-
-            chars.forEach((c, i) => {
+            DB.manhwas[currentIndex].characters.forEach((c, i) => {
                 const li = document.createElement('li')
-                li.className = 'list-group-item list-group-item-action'
-                li.textContent = c.name
+                li.className = 'list-group-item d-flex justify-content-between align-items-center'
                 li.onclick = () => loadCharacter(i)
+
+                const left = document.createElement('div')
+                left.className = 'd-flex align-items-center gap-2'
+                const nameSpan = document.createElement('span')
+                nameSpan.textContent = c.name || '(Tanpa nama)'
+                left.appendChild(nameSpan)
+
+                li.appendChild(left)
+
+                // BADGE: prefer committed -> saved -> draft
+                const right = document.createElement('div')
+                if (c.isCommitted) {
+                    const badge = document.createElement('span')
+                    badge.className = 'badge bg-success text-white ms-2'
+                    badge.textContent = 'committed'
+                    right.appendChild(badge)
+                } else if (c.isSaved) {
+                    const badge = document.createElement('span')
+                    badge.className = 'badge bg-primary text-white ms-2'
+                    badge.textContent = 'saved'
+                    right.appendChild(badge)
+                } else if (c.isDraft) {
+                    const badge = document.createElement('span')
+                    badge.className = 'badge bg-warning text-dark ms-2'
+                    badge.textContent = 'draft'
+                    right.appendChild(badge)
+                }
+
+                li.appendChild(right)
                 ul.appendChild(li)
             })
         }
+
+
 
         function loadCharacter(i) {
             const c = DB.manhwas[currentIndex].characters[i]
@@ -751,7 +840,10 @@
                 image: cImage.value.trim(),
                 debut_chapter: Number(cDebut.value),
                 description: cDesc.value.trim(),
-                action_chapters: [...actionChapters]
+                action_chapters: [...actionChapters],
+                isDraft: false,
+                isSaved: true,
+                isCommitted: false
             }
 
             if (!char.name) {
@@ -768,12 +860,18 @@
 
             if (currentCharIndex === null) {
                 chars.push(char)
+                currentCharIndex = chars.length - 1
             } else {
-                chars[currentCharIndex] = char
+                // merge flags if existing
+                chars[currentCharIndex] = {
+                    ...chars[currentCharIndex],
+                    ...char
+                }
             }
 
             renderCharacters()
         }
+
 
         function deleteCharacter() {
             if (currentCharIndex === null) {

@@ -112,3 +112,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:Inter, 
   line-height: 1;
 }
 
+.badge.bg-warning {
+  background: #f5c542 !important;
+}
+
+.badge.bg-success { background: #2ecc71 !important; }
+.badge.bg-primary { background: #3b82f6 !important; }
+.badge.bg-warning { background: #f5c542 !important; color: #101010 !important; }
+
+
