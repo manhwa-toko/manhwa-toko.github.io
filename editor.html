@@ -386,63 +386,23 @@
         }
 
 
-        // validasi secret
-        async function validateSecret() {
+        function validateSecret() {
             const val = secret.value.trim()
             const status = document.getElementById('secret-status')
             const btn = document.getElementById('btn-commit')
 
             if (!val) {
                 status.textContent = ''
-                status.className = 'form-text'
                 btn.disabled = true
-                isSecretValid = false
                 return
             }
 
-            status.textContent = '⏳ Mengecek secret...'
-            status.className = 'form-text text-muted'
-            btn.disabled = true
-
-            try {
-                const res = await fetch('/api/commit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-editor-secret': val
-                    },
-                    body: JSON.stringify({}) // kosong, cuma test auth
-                })
-
-                if (res.status === 401) {
-                    status.textContent = '❌ Editor secret salah'
-                    status.className = 'form-text text-danger'
-                    isSecretValid = false
-                    btn.disabled = true
-                    return
-                }
-
-                if (!res.ok) {
-                    status.textContent = '⚠️ Server error'
-                    status.className = 'form-text text-warning'
-                    btn.disabled = true
-                    isSecretValid = false
-                    return
-                }
-
-                // VALID
-                status.textContent = '✅ Editor secret valid'
-                status.className = 'form-text text-success'
-                btn.disabled = false
-                isSecretValid = true
-
-            } catch (err) {
-                status.textContent = '⚠️ Gagal menghubungi server'
-                status.className = 'form-text text-warning'
-                btn.disabled = true
-                isSecretValid = false
-            }
+            // Tidak cek ke server, hanya cek ada isi
+            status.textContent = '🔐 Secret siap digunakan'
+            status.className = 'form-text text-success'
+            btn.disabled = false
         }
+
 
         secret.addEventListener('blur', validateSecret)
 
@@ -479,6 +439,7 @@
                         body: JSON.stringify(img)
                     })
 
+                    if (r.status === 401) throw 'Editor secret salah'
                     const j = await r.json()
                     if (!j.ok) throw j.error
                 }
@@ -496,6 +457,7 @@
                     body: JSON.stringify({ manhwas: DB })
                 })
 
+                if (r.status === 401) throw 'Editor secret salah'
                 const j = await r.json()
                 if (!j.ok) throw j.error
 
