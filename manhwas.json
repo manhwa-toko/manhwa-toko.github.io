@@ -94,6 +94,19 @@
           "isDraft": false
         }
       ]
+    },
+    {
+      "id": "circles",
+      "title": "Circles",
+      "poster": "/media/poster/circles.jpg",
+      "chapters": 200,
+      "genres": [
+        "Harem",
+        "School",
+        "Romance"
+      ],
+      "synopsis": "Jinsoo, murid pindahan yang masuk ke klub Drama yang dipenuhi banyak gadis",
+      "characters": []
     }
   ]
 }
