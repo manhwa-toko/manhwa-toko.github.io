@@ -413,9 +413,14 @@
             pmText.textContent = t
         }
 
-        function hideModal() {
-            setTimeout(() => progressModal.classList.add('d-none'), 800)
+        function closeProgressModal() {
+            progressModal.classList.add('d-none')
+            pmActions.classList.add('d-none')
+            pmTitle.textContent = 'Mengirim ke GitHub…'
+            pmBar.style.width = '0%'
+            pmBar.textContent = '0%'
         }
+
 
         async function commit() {
             showModal(0, 'Menyiapkan commit…')
@@ -468,10 +473,15 @@
 
                 imagesQueue = []
                 status.textContent = '✅ Commit berhasil'
-                hideModal()
+
+                // tampilkan pesan sukses & tombol Oke
+                pmTitle.textContent = '✅ Berhasil'
+                pmText.textContent = 'Data berhasil ditambahkan ke GitHub'
+                pmActions.classList.remove('d-none')
 
             } catch (e) {
                 pmText.textContent = '❌ ' + e
+                pmActions.classList.remove('d-none')
             }
         }
 
@@ -901,12 +911,22 @@
          display:flex;align-items:center;justify-content:center">
         <div class="bg-dark p-4 rounded text-white" style="width:420px">
             <h5 id="pmTitle">Mengirim ke GitHub…</h5>
+
             <div class="progress mt-3">
                 <div id="pmBar" class="progress-bar" style="width:0%">0%</div>
             </div>
+
             <div id="pmText" class="small mt-2 text-muted">Menyiapkan…</div>
+
+            <!-- 🔑 tombol konfirmasi -->
+            <div class="text-end mt-4 d-none" id="pmActions">
+                <button class="btn btn-success btn-sm" onclick="closeProgressModal()">
+                    Oke
+                </button>
+            </div>
         </div>
     </div>
+
 
 </body>
 
