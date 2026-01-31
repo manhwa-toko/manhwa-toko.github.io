@@ -94,18 +94,6 @@
           "isDraft": false
         }
       ]
-    },
-    {
-      "id": "city-of-darkness",
-      "title": "City of Darkness",
-      "poster": "https://placehold.co/600x900?text=City+of+Darkness",
-      "chapters": 78,
-      "genres": [
-        "Drama",
-        "Supernatural"
-      ],
-      "synopsis": "Kisah kota yang dihantui misteri dan sekumpulan pemuda yang mencoba mengungkapnya.",
-      "characters": []
     }
   ]
 }
