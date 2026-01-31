@@ -106,7 +106,18 @@
         "Romance"
       ],
       "synopsis": "Jinsoo, murid pindahan yang masuk ke klub Drama yang dipenuhi banyak gadis",
-      "characters": []
+      "characters": [
+        {
+          "name": "Jaewoo",
+          "image": "/media/character/jaewoo.jpg",
+          "debut_chapter": 1,
+          "description": "Main character, murid pindahan masuk klub drama, sifat cerianya banyak disukai para perempuan di sekolahnya",
+          "action_chapters": [],
+          "isDraft": false,
+          "isSaved": true,
+          "isCommitted": false
+        }
+      ]
     }
   ]
 }
